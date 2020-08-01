@@ -39,9 +39,10 @@ def in_episode(season, episode)
     characters = episode_info.css('td.character').map {|char| char.text}
     cleaned_characters = characters.map { |char| char.gsub(/[[:space:]]+/, " " ).strip}
     actors = episode_info.css('.primary_photo > a').map {|inner| inner.children[0].attributes["title"].value}
-    episode_hash[:air_date] = episode_info.css("[title$=dates]").text
+    episode_hash[:air_date] = air_date(episode_info)
     episode_hash[:plot] = synopsis(episode_info)
     episode_hash[:cast] = cast_assesment(actors,cleaned_characters)
+    episode_hash[:rating] = rating(episode_info).round(2)
     binding.pry
 end
 
@@ -56,7 +57,14 @@ def cast_assesment(actors, characters)
     cast
 end
 
+def air_date(episode_info)
+    (episode_info.css("[title$=dates]").text.split("aired")[1]).strip
+end
 
 def synopsis(episode_info)
     episode_info.css('.canwrap > p  > span').text.strip
+end
+
+def rating(episode_info)
+    episode_info.css('[itemprop=ratingValue]').text.to_f/2.04
 end
