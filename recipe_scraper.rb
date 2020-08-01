@@ -1,9 +1,10 @@
 require './link_scraper.rb'
 
 class Recipe
-    def initialize 
-        @ingredients = []
-        @directions = [] 
+    def initialize(name, ingredients,directions)
+        @name= name
+        @ingredients = ingredients
+        @directions = directions
     end
 end
 

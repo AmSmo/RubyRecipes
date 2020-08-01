@@ -32,26 +32,44 @@ def into_link
     links.each do |link|
         url = link[:link]
         recipe = parse_page(url)
+        binding.pry
         every_recipe << recipe
     end
 end
 
+def specific_recipe(url)
+    recipe = parse_page(url)
+    ingredients = get_ingredients(recipe)
+    directions = get_directions(recipe)
+    
+end
+
 def get_ingredients(recipe)
     # ingredient_css = ['span.ingredients-item-name', ]
-    ingredients = recipe.css('span.ingredients-item-name').map {|ingredient| ingredient.text}
+    ingredients = recipe.css('span.ingredients-item-name').map {|ingredient| ingredient.text.strip}
     if ingredients.empty?
-        ingredients = recipe.css('[itemprop$=dient]').map {|n| n.text}
+        ingredients = recipe.css('[itemprop$=dient]').map {|n| n.text.strip}
     end
     ingredients
-
-    
-
 end
 
 def get_directions(recipe)
-    directions = recipe.css('li.instructions-section-item').map {|direction| direction.text}
+    directions = recipe.css('li.instructions-section-item').map {|direction| direction.text.strip}
+    directions.map! {|di| di.split("\n").map(&:strip).select {|i| i.length>1}}
     if directions.empty?
         directions = recipe.css('li span[class^=recipe-direct]').map {|direction| direction.text.strip}
+        directions.map! {|di| di.split("\n").map(&:strip).select {|i| i.length>1}}
     end
     directions
+end
+
+def get_name(recipe)
+    recipe.css('h1').text
+end
+
+def get_classy(recipe)
+    name = get_name(recipe)
+    ingredients= get_ingredients(recipe)
+    directions = get_directions(recipe)
+    Recipe.new(name,ingredients,directions)
 end
