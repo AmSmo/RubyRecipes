@@ -10,7 +10,7 @@ end
 
 def get_all
     series = {}
-    (1..32).each do |season_number|
+    (1..31).each do |season_number|
         name = "season_#{season_number}".to_sym
         series[name] = get_seasons(season_number)
     end
@@ -94,7 +94,12 @@ def title(episode_info)
 end
 
 def air_date(episode_info)
-    (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
+    if episode_info.css("[title$=dates]").text.split("aired")[1].empty?
+        return "whoops"
+    else
+
+    return (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
+    end
 end
 
 def synopsis(episode_info)
