@@ -84,7 +84,6 @@ def prompt
     puts "Is this the right show?"
     answer = gets.chomp.downcase
     if answer.start_with?("y")
-        
         return true
     elsif answer.start_with?("n")
         return false
