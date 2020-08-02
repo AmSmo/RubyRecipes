@@ -8,14 +8,14 @@ def parse_page(url)
     return Nokogiri::HTML(unparsed_page)
 end
 
-def get_all
+def get_all(seasons, show)
     series = {}
-    (1..31).each do |season_number|
+    (seasons[0]..seasons[-1]).each do |season_number|
         name = "season_#{season_number}".to_sym
         series[name] = get_seasons(season_number)
     end
     series
-    write_to_json(series, 'simpsons_full')
+    write_to_json(series, show)
 end
 
 def write_to_json(hash, filename)
