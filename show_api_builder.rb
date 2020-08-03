@@ -136,6 +136,78 @@ class Show
     
     end
 
+    # all the info in an episode
+
+    def in_episode(season, episode)
+        episode_hash = {}
+        episodes = (get_episodes(season))
+        current_episode = episodes[episode-1]
+        episode_info = parse_page(current_episode)
+        characters = characters(episode_info)
+        actors = actors(episode_info)
+        episode_hash[:title] = title(episode_info)
+        episode_hash[:air_date] = air_date(episode_info)
+        episode_hash[:plot] = synopsis(episode_info)
+        episode_hash[:cast] = cast_assesment(actors, characters)
+        episode_hash[:rating] = rating(episode_info).round(2)
+        episode_hash[:writers] = writer(episode_info)
+        episode_hash[:directors] = director(episode_info)
+        episode_hash 
+    end
+
+
+    # ALL THE FOLLOWING ARE HELPER METHODS FOR EPISODE HASH 
+
+    # get characters from a specific episode
+
+    def characters(episode_info)
+        episode_info.css('td.character').map {|char| char.text}
+        return characters.map { |char| char.gsub(/[[:space:]]+/, " " ).strip}
+    end
+
+    # get actors from a specifc episode
+    
+    def actors(episode_info)
+        episode_info.css('.primary_photo > a').map {|inner| inner.children[0].attributes["title"].value}
+    end
+
+    # joins actors with their characters
+
+    def cast_assesment(actors, characters)
+        i = 0
+        cast = {}
+        while i <actors.length
+            cast[actors[i]] = characters[i].split(" / ")
+            i+=1
+        end    
+        cast
+    end
+
+    # episode title that's in the specific hash
+
+    def title(episode_info)
+        episode_info.css('h1').text
+    end
+
+   # returns air date, there is a whoops because I came across an airdate that was omitted and it broke everything
+
+    def air_date(episode_info)
+        if episode_info.css("[title$=dates]").text.split("aired")[1].empty?
+            return "whoops"
+        else
+            return (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
+        end
+    end
+
+    def synopsis(episode_info)
+        episode_info.css('.canwrap > p  > span').text.strip
+    end
+
+    def rating(episode_info)
+        episode_info.css('[itemprop=ratingValue]').text.to_f/2.04
+    end
+
+
 end
 
 

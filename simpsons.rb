@@ -78,6 +78,8 @@ def in_episode(season, episode)
     
 end
 
+
+
 def cast_assesment(actors, characters)
     i = 0
     cast = {}
@@ -97,8 +99,7 @@ def air_date(episode_info)
     if episode_info.css("[title$=dates]").text.split("aired")[1].empty?
         return "whoops"
     else
-
-    return (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
+        return (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
     end
 end
 
