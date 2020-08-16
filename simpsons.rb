@@ -24,6 +24,7 @@ def write_to_json(hash, filename)
     end
 end
 
+
 def get_seasons(season_number)
     season = {}
     episodes = get_episodes(season_number)

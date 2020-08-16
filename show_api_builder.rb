@@ -13,13 +13,31 @@ class Show
 
     def initialize(show)
         @show_name = show
-        @show_main_page = search_for(show) 
+        @show_main_page = search_for
         @show_main_info = parse_page(@show_main_page)
-        @season_max ||= last_season_num(@show_main_info)
-        # @show_hash ||= 
+        @season_max ||= last_season_num
+        @show_hash ||= get_all([1, season_max], show)
     end
 
+    def last_season_num
+        @show_main_info.css('.seasons-and-year-nav > div > a')[0].text.to_i
+    end
     # turns html into CSS sortable objects
+    def get_all(seasons, show)
+        series = {}
+        (seasons[0]..seasons[-1]).each do |season_number|
+            name = "season_#{season_number}".to_sym
+            series[name] = get_seasons(season_number)
+        end
+        series
+        write_to_json(series, show)
+    end
+
+    def write_to_json(hash, filename)
+        File.open("#{filename}.json", "w") do |f|
+            f.write(JSON.pretty_generate(hash))
+        end
+    end
 
     def parse_page(url)
         unparsed_page = HTTParty.get(url)
@@ -38,8 +56,8 @@ class Show
     # takes in show name and sorts through the imdb base link to make
     # sure we are using the right tv show
 
-    def search_for(show)
-        show_search_query = show.split.join("+")
+    def search_for
+        show_search_query = @show_name.split.join("+")
         page = "https://www.imdb.com/find?q=#{show_search_query}"
         parsed_search= parse_page(page)
         links = get_search_links(parsed_search)
@@ -143,12 +161,12 @@ class Show
         episodes = (get_episodes(season))
         current_episode = episodes[episode-1]
         episode_info = parse_page(current_episode)
-        characters = characters(episode_info)
+        characters_info = characters(episode_info)
         actors = actors(episode_info)
         episode_hash[:title] = title(episode_info)
         episode_hash[:air_date] = air_date(episode_info)
         episode_hash[:plot] = synopsis(episode_info)
-        episode_hash[:cast] = cast_assesment(actors, characters)
+        episode_hash[:cast] = cast_assesment(actors, characters_info)
         episode_hash[:rating] = rating(episode_info).round(2)
         episode_hash[:writers] = writer(episode_info)
         episode_hash[:directors] = director(episode_info)
@@ -161,8 +179,8 @@ class Show
     # get characters from a specific episode
 
     def characters(episode_info)
-        episode_info.css('td.character').map {|char| char.text}
-        return characters.map { |char| char.gsub(/[[:space:]]+/, " " ).strip}
+        character_here = episode_info.css('td.character').map {|char| char.text}
+        return character_here.map { |char| char.gsub(/[[:space:]]+/, " " ).strip}
     end
 
     # get actors from a specifc episode
@@ -173,11 +191,11 @@ class Show
 
     # joins actors with their characters
 
-    def cast_assesment(actors, characters)
+    def cast_assesment(actors, characters_info)
         i = 0
         cast = {}
         while i <actors.length
-            cast[actors[i]] = characters[i].split(" / ")
+            cast[actors[i]] = characters_info[i].split(" / ")
             i+=1
         end    
         cast
@@ -192,7 +210,7 @@ class Show
    # returns air date, there is a whoops because I came across an airdate that was omitted and it broke everything
 
     def air_date(episode_info)
-        if episode_info.css("[title$=dates]").text.split("aired")[1].empty?
+        if episode_info.css("[title$=dates]").text.split("aired")[1].nil?
             return "whoops"
         else
             return (episode_info.css("[title$=dates]").text.split("aired")[1]).strip 
